@@ -15,6 +15,13 @@ use Illuminate\Http\Request;
 |
 */
 
+Route::get('/todos', 'TodoController@index');           //inside todos directiory file named index.blade.php
+Route::get('/todos/create', 'TodoController@create');    //inside todos directiory file named create.blade.php
+Route::post('/todos/create','TodoController@store');
+Route::get('/todos/edit', 'TodoController@edit');    //inside todos directiory file named edit.blade.php
+
+
+
 //the below code is made with a closure
 Route::get('/', function () {
     // return  config('services.ses.key'); //this is how we get data from config/services.php -> ses.key
