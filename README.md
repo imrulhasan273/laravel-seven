@@ -9,6 +9,8 @@
 
 # **Documentation of Laravel 7 Basics**
 
+[Laravel Official Docx](https://laravel.com/docs/7.x)
+
 ---
 
 ## **Installation**
@@ -127,35 +129,65 @@ below queries will be written inside the function of the Controller.
 **Insert**
 
 ```php
-DB::insert('insert into users (name, email, password) values (?, ?, ?)',
-['Imrul', 'imrulhasan273@gmail.com', 'imrul']);
 
-$users = DB::select('select * from users');
-return $users;
+class UserController extends Controller
+{
+
+    public function index()
+    {
+        DB::insert('insert into users (name, email, password) values (?, ?, ?)',
+        ['Imrul', 'imrulhasan273@gmail.com', 'imrul']);
+
+        $users = DB::select('select * from users');
+        return $users;
+    }
+}
+
 ```
 
 **Select**
 
 ```php
-$users = DB::select('select * from users');
-return $users;
+class UserController extends Controller
+{
+
+    public function index()
+    {
+        $users = DB::select('select * from users');
+        return $users;
+    }
+}
 ```
 
 **Update**
 
 ```php
-DB::update('update users set name = ? where id = ?',
-['Imrul',13]);
-$users = DB::select('select * from users');
-return $users;
+class UserController extends Controller
+{
+
+    public function index()
+    {
+        DB::update('update users set name = ? where id = ?',
+        ['Imrul',13]);
+        $users = DB::select('select * from users');
+        return $users;
+    }
+}
 ```
 
 **Delete**
 
 ```php
-DB::delete('delete from users');
-$users = DB::select('select * from users');
-return $users;
+class UserController extends Controller
+{
+
+    public function index()
+    {
+        DB::delete('delete from users');
+        $users = DB::select('select * from users');
+        return $users;
+    }
+}
 ```
 
 ---
@@ -167,36 +199,79 @@ return $users;
 **Insert**
 
 ```php
-$user =  new User();
-// var_dump($user); //var dumb
-// dd($user); //die and dumb, so much clean
-$user->name = 'Imrul Hasan';
-$user->email = 'imrulhasan273@gmail.com';
-$user->password = bcrypt('imrul');
-$user->save();
+class UserController extends Controller
+{
+
+    public function index()
+    {
+        $user =  new User();
+        // var_dump($user); //var dumb
+        // dd($user); //die and dumb, so much clean
+        $user->name = 'Imrul Hasan';
+        $user->email = 'imrulhasan273@gmail.com';
+        $user->password = bcrypt('imrul');
+        $user->save();
+    }
+}
 ```
 
 **Fetch all the data from database table (select)**
 
 ```php
-$user = User::all();
-return $user;
+class UserController extends Controller
+{
+
+    public function index()
+    {
+        $user = User::all();
+        return $user;
+    }
+}
 ```
 
-> `all()` is a static method and not static method. Magical statement? We can see all the fields value except password. Because password is 'protected_hidden' field defined in `User.php` so that field will not come in `all()`
+> `all()` is a static method and not static method. Magical statement? We can see all the fields value except `password`. Because password is `protected_hidden` field defined in `User.php` so that field will not come in `all()`
+
+**`User.php`**
+
+```php
+/**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
+```
+
+> If we want to view the password too in window then we need to delete `password` column from that `$protected` variable.
 
 **Update**
 
 ```php
-User::where('id',16)->update(['name' => 'Imrul Hasan']);
-$user = User::all();
-return $user;
+class UserController extends Controller
+{
+
+    public function index()
+    {
+        User::where('id',16)->update(['name' => 'Imrul Hasan']);
+        $user = User::all();
+        return $user;
+    }
+}
 ```
 
 **Delete**
 
 ```php
-User::where('id',14)->delete();
+class UserController extends Controller
+{
+
+    public function index()
+    {
+        User::where('id',14)->delete();
+    }
+}
 ```
 
 > On the above query `id='14'` is explicitely defined which is not a process that we will working with. User model can only interact with users table.
@@ -870,206 +945,345 @@ public function uploadAvatar(Request $request)
 
 ---
 
-\*how to create table?
-ans: using migration, need model to interact with table
+**how to create table?**
 
-need a table named 'todos'
-table->'todos'
-title: string
-complited: boolean
+> Ans: using migration, need model to interact with table
 
-need a model named todo: (which will interact with table todos)
+**Table name: `todos`**
 
-model->'todo'
+-   title: string
+-   complited: boolean
 
-*So we need 4 things
-model:todo ( $ php artisan make:model )
-	migration:todos ( $ php artisan make:migration )
-routes ( create a route by own )
-controller ( \$ php artisan make:controller )
-*How we create all these things?
+**Model Name: `todo`** (which will interact with table todos)
 
-\*But laravel is so smart to do these thing in easy.
-\$ php artisan make:model Todo -mc (CMD) [m->migration, c->controller][here model, migration, controller is created. ]
+**So we need 4 things to create a `table`**
 
-results: table -> todos (database/migrations/)
-model -> todo (view/)
-controller ->TodoController (Http/Controller/)
+1. model: `todo`
+2. migration: `todos` [table]
+3. routes: Manual Creation
+4. controller: `TodoController`
 
-\*Now we will create structure of todo table in migrations
+**How we create all these things?**
 
--   then we need to add table to database
-    ~\$ php artisan migrate (CMD) [dont use fresh or refresh, if so then
-    [we will loss our table data ]
+```cmd
+~$ php artisan make:model
+~$ php artisan make:migration
+~$ php artisan make:controller
+```
 
-\*We have done 3 task out of 4 now we need to make routes
+> But laravel is so smart to do these thing in easy. So we can do all the three command in one line like below:
 
-#**\*\***\_\_\_**\*\***TO DO list mini project #2 (Views, Store and Validation)
+```cmd
+~$ php artisan make:model Todo -mc   [Suggested]
+```
 
-\*create a 'todos' dir inside the resources/views
+**flags:**
 
--   make a route in web.php for index
-    Route::get('/todos', 'TodoController@index'); //inside todos directiory file named index.blade.php
-    \*create a file named 'index.blade.php' in the folder 'todos'
+-   `m`= migration
+-   `c` = controller
+-   Model, Migration and Controller is created.
 
-*   make another route in web.php for create todo
-    Route::get('/todos/create', 'TodoController@create'); //inside todos directiory file named create.blade.php
-    \*create a file named 'create.blade.php' in the folder 'todos'
+**Results**
 
-*   make another route in web.php for edit todo
-    Route::get('/todos/edit', 'TodoController@edit'); //inside todos directiory file named edit.blade.php
-    \*create a file named 'edit.blade.php' in the folder 'todos'
+> Table: `todos`. Directory: `database/migrations/`
 
-------here is the controller of todo from routes.
-\*\*TodoController
+> Model: `todo`. Directory: `view/`
+
+> Controller: `TodoController`. Directory: `Http/Controller/`
+
+**Now we will create structure of todo table in migrations**
+
+**`migratioon/todos table`**
+
+```php
+class CreateTodosTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('todos', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->boolean('completed')->default(false);
+            $table->timestamps();
+        });
+    }
+```
+
+> Then we need to add `table` to database
+
+```cmd
+~$ php artisan migrate
+```
+
+> Dont use `fresh` or `refresh` migration command, if so then we will loss our datas from table.
+
+> We have done 3 task out of 4 now we need to make routes.
+
+## **To Do list mini project #2: Views, Store and Validation)**
+
+> Create a `todos` directory inside the `resources/views/` So that all the todo related files will be stored in that directory.
+
+---
+
+**Creating a route in `web.php` for `index`**
+
+**`web.php`**
+
+```php
+Route::get('/todos', 'TodoController@index');
+```
+
+> Inside `todos` directiory file name is `index.blade.php`. `index` function inside the `TodoController`
+
+> Create a file named `index.blade.php` in the folder `todos`
+
+---
+
+**Creating a route in `web.php` for `create` todo**
+
+**`web.php`**
+
+```php
+Route::get('/todos/create', 'TodoController@create');
+```
+
+> Inside `todos` directiory file name is `create.blade.php`. `create` function inside the `TodoController`
+
+> Create a file named `create.blade.php` in the folder `todos`
+
+---
+
+**Creating a route in `web.php` for `edit` todo**
+
+**`web.php`**
+
+```php
+Route::get('/todos/edit', 'TodoController@edit');
+```
+
+> Inside `todos` directiory file name is `edit.blade.php`. `edit` function inside the `TodoController`
+
+> Create a file named `edit.blade.php` in the folder `todos`
+
+---
+
+**`TodoController.php`**
+
+```php
 class TodoController extends Controller
 {
-public function index()
-{
-return view('todos.index'); //inside todos directiory file named index.blade.php
+    public function index()
+    {
+        return view('todos.index'); //inside todos directiory file named index.blade.php
+    }
+    public function create()
+    {
+        return view('todos.create'); //inside todos directiory file named index.blade.php
+    }
+    public function edit()
+    {
+        return view('todos.edit'); //inside todos directiory file named index.blade.php
+    }
 }
-public function create()
-{
-return view('todos.create'); //inside todos directiory file named index.blade.php
-}
-public function edit()
-{
-return view('todos.edit'); //inside todos directiory file named index.blade.php
-}
-}
+```
 
-\*now create a form inside the create.blade.php
+**Now create a form inside the `create.blade.php`**
 
+```php
 <div class="text-center pt-10">
-<h1 class="text-2xl">What next you need To-Do</h1>
-<form action="/todos/create" method="POST" enctype="multipart/form-data" class="py-5">
-@csrf <!-- this @csrf token handles routes in form -->
-<input type="text" name="title" class="py-2 px-2 border"/>
-<input type="submit" value="Create" class="p-2 border rounded"/>
-</form>
+    <h1 class="text-2xl">What next you need To-Do</h1>
+    <form action="/todos/create" method="POST" enctype="multipart/form-data" class="py-5">
+        @csrf <!-- this @csrf token handles routes in form -->
+        <input type="text" name="title" class="py-2 px-2 border"/>
+        <input type="submit" value="Create" class="p-2 border rounded"/>
+    </form>
 </div>
+```
 
-\*here form method is 'POST' so we need to create a function for storing data inside
-TodoController via "Route::post" from web.php
+> Here form `method="POST"` so we need to create a function for storing data inside `TodoController` via `Route::post` from `web.php`
 
+> In this `form` We use `Tailwind` framework for `CSS` instead of `bootstrap`.
+
+```css
+<link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+```
+
+**`web.php`**
+
+```php
 Route::post('/todos/create','TodoController@store'); //in web.php
+```
 
-\*add the store function inside the TodoController.php
+**Add the store function inside the `TodoController.php`**
+
+**`TodoController.php`**
+
+```php
 public function store(Request $request)
-    {
-        //dd($request->all());
-Todo::create(\$request->all());
+{
+    //dd($request->all());
+    Todo::create(\$request->all());
 }
+```
 
-\*Now after submitting the form error
-<<Add [_token] to fillable property to allow mass assignment on [App\Todo].>>
+> Now after submitting the form error: `Add [_token] to fillable property to allow mass assignment on [App\Todo].`
 
-\*add below line to Todo.php (Model)
-protected \$fillable = ['_token'];
+**Add below line to `Todo.php` (Model)**
 
-\*after submitting the form another error
-<<Column not found: 1054 Unknown column '\_token' in 'field list' (SQL: insert into `todos` (`_token`, `updated_at`, `created_at`) values >>
+```php
+class Todo extends Model
+{
+    protected $fillable = ['_token'];   //added line
+}
+```
 
-\*edit below line to Todo.php (Model)
-protected \$fillable = ['title'];
-again error->>>> 'completed' column is required
+> After submitting the form another error: `Column not found: 1054 Unknown column '\_token' in 'field list' (SQL: insert into todos ( \_token`,`updated_at`,`created_at) values`
 
-\*Todo table:
-\$table->boolean('completed')->default(false); //it makes dafault value of completed as false,
-// no need to pass the data
-//default value = 0 now
+**Edit below line to `Todo.php` (Model)**
 
-    and then
-    ~$ php artisan migrate:fresh (Never use in production, because it erash all the datas in table)
+```php
+class Todo extends Model
+{
+    protected $fillable = ['title'];   //added line
+}
+```
 
-    ~$ php artisan serve [ refresh the page and now no error and data
-    		      is saved in the database]
+> Again error: `completed column is required`
 
-\*TodoController.php
+> **Edit below line of code from `todo` table in `migrations/`**
+
+```php
+$table->boolean('completed')->default(false);
+```
+
+**Now the table look like this:**
+
+```php
+public function up()
+{
+    Schema::create('todos', function (Blueprint $table) {
+        $table->id();
+        $table->string('title');
+        $table->boolean('completed')->default(false);
+        $table->timestamps();
+    });
+}
+```
+
+> It makes `dafault value` of completed as `false`, no need to pass the data, `default value = 0` now
+
+And then
+
+```cmd
+~$ php artisan migrate:fresh
+```
+
+> Never use in production, because it erash all the datas in table
+
+```cmd
+~$ php artisan serve
+```
+
+> refresh the page and now no error and data is saved in the database
+
+**`TodoController.php`**
+
+```php
 public function store(Request $request)
-    {
-        // dd($request->all());
-Todo::create(\$request->all());
-return redirect()->back()->with('message', 'Todo created successfully!');
+{
+    //dd($request->all());
+    Todo::create(\$request->all());
+    return redirect()->back()->with('message', 'Todo created successfully!');
 }
+```
 
-\*\*\*but the message is not showing.
-solution: add <x-alert/> in the from segment of create.blade.php
+> But the `message` is not showing weather uploaded or not.
 
-\*After adding the <x-alert/> the message shows but the messgae is now showing
-with a green background. [because we use tailwind not bootstrap]
-Solution: = we need to change the alert.blade.php file
+**Solution:** add `<x-alert/>` in the from segment of `create.blade.php`.
 
-\*alart.blade.php
+> After adding the `<x-alert/>` the message appears but without any `CSS`. Because we use `tailwind` not `bootstrap`
 
+**Solution:** We need to change the `alert.blade.php` file
+
+**`alart.blade.php`**
+
+```php
 <div>
     @if(session()->has('message'))
-    <!-- <div class="alert alert-success">{{ session()->get('message')}} </div> -->
     <div class="py-4 px-2 bg-green-400">{{ session()->get('message')}} </div>
     {{ session()->forget('message') }}
     @elseif(session()->has('error'))
-    <!-- <div class="alert alert-danger">{{ session()->get('error')}} </div> -->
     <div class="py-4 px-2 bg-red-300">{{ session()->get('error')}} </div>
     @endif
 </div>
+```
 
-Now it works.......
+**Now it works.......**
 
-\*But another problem arises. when we Click Create button without input anything
-in the text filled. then error......
-We need to handle this like before we did.
+> But another problem arises when we Click Create button without input anything in the text filled. We need to handle this like before we did.
 
-#**\*\***\*\*\*\***\*\***\_**\*\***\*\*\*\***\*\***TO DO list mini project #5
+---
+
+## **TO DO list mini project #5**
+
+---
+
 Solves:
+
+```php
 public function store(Request $request)
-    {
-        if(!$request->title)
 {
-return redirect()->back()->with('error', 'Please Give Title');
-}
-
-Todo::create(\$request->all());
-return redirect()->back()->with('message', 'Todo created successfully!');
-}
-\*but above code is not a good way of validation message.
-because many more field may have in database.
-SO its bad way to to do condition for each and every field like that.
-
-Solution:
-#Writing The Validation Logic-> Laravel Documentation
-#Available Validation Rules -> Laravel Documentation
-\$Displaying The Validation Errors ->Laravel Documentation
-
-\*TodoController.php
-public function store(Request $request)
+    if(!$request->title)
     {
-        $request->validate([
-'title'=>'required'
-]);
-
-        Todo::create($request->all());
-        return redirect()->back()->with('message', 'Todo created successfully!');
+        return redirect()->back()->with('error', 'Please Give Title');
     }
 
-->But the problem is no error message apppears when submitting without message.
-because we do this kind of validation the error will go inside the session as
-a name of "errors" not "error"
+    Todo::create(\$request->all());
+    return redirect()->back()->with('message', 'Todo created successfully!');
+}
+```
 
-that means when we use this kind of validation the validation autumatically
-returns and shows the error message as "errors"
+> but above code is not a good way of validation message. because many more field may have in database. So its bad way to do `condition` for each and every `fields` like that.
 
-Solution : Put a segment of code from Documentation to alert.blade.php after
-the first if-else-endif condition
+**Solution:**
 
-\*\_\_alert.blade.php
+[Writing The Validation Logic](https://laravel.com/docs/7.x/validation#quick-writing-the-validation-logic)
 
+[Available Validation Rules](https://laravel.com/docs/7.x/validation#available-validation-rules)
+
+[Displaying The Validation Errors](https://laravel.com/docs/7.x/validation#validation-quickstart)
+
+**`TodoController.php`**
+
+```php
+public function store(Request $request)
+{
+    $request->validate([
+    'title'=>'required'
+    ]);
+
+    Todo::create($request->all());
+    return redirect()->back()->with('message', 'Todo created successfully!');
+}
+```
+
+> But the problem is no error message apppears when submitting without message. Because we do this kind of validation the error will go inside the session as a name of `errors` not `error`. Previously that was `error`. That means when we use this kind of validation the validation autumatically returns and shows the error message as `errors`
+
+**Solution:** Put a segment of code from Documentation to `alert.blade.php` after the first `if-else-endif` condition
+
+**`alert.blade.php`**
+
+```php
 <div>
     @if(session()->has('message'))
-    <!-- <div class="alert alert-success">{{ session()->get('message')}} </div> -->
     <div class="py-4 px-2 bg-green-400">{{ session()->get('message')}} </div>
     {{ session()->forget('message') }}
     @elseif(session()->has('error'))
-    <!-- <div class="alert alert-danger">{{ session()->get('error')}} </div> -->
     <div class="py-4 px-2 bg-red-300">{{ session()->get('error')}} </div>
     @endif
 
@@ -1082,60 +1296,51 @@ the first if-else-endif condition
         </ul>
     </div>
     @endif
-
 </div>
+```
 
---> another problem also stays.....
-when we pass a title name more than 255 of length then another error occurs.
-We need to handle this problem.
+> Another problem also stays. When we pass a title name more than 255 of length then another error occurs. We need to handle this problem.
 
-    #max:value --> Laravel Documentation
+_**max:value --> Laravel Documentation**_
 
-Solution:
-\$request->validate([
+**Solution:**
+
+```php
+$request->validate([
 'title'=>'required|max:255'
 ]);
+```
 
-Now the error message: "The title may not be greater than 255 characters."
-But I want to display my message.... How to do that?
+> Now the error message: `The title may not be greater than 255 characters.`
 
-Solution: --> Manually Creating Validators [Laravle Documentation]
-\*TodoController.php
+> But I want to display my own message. How to do that?
 
-    public function store(Request $request)
+**Solution:**
+
+[Manually Creating Validators](https://laravel.com/docs/7.x/validation#manually-creating-validators)
+
+**`TodoController.php`**
+
+```php
+public function store(Request $request)
+{
+    $rules =[
+        'title'=>'required|max:255',
+    ];
+    $messages = [
+        'title.max' => 'ToDo title should not be greater than 255 chars',
+    ];
+    $validator = Validator::make($request->all(), $rules, $messages);
+    //this code will not prevent below code code from eecuting so error will appears.
+    //so we need below segment to check
+    if ($validator->fails())
     {
-        $rules =[
-            'title'=>'required|max:255',
-        ];
-        $messages = [
-            'title.max' => 'ToDo title should not be greater than 255 chars',
-        ];
-        $validator = Validator::make($request->all(), $rules, $messages);
-        //this code will not prevent below code code from eecuting so error will appears.
-        //so we need below segment to check
-        if ($validator->fails())
-        {
-            return redirect()->back()
-                        ->withErrors($validator)
-                        ->withInput();
-        }
-
-        Todo::create($request->all());
-        return redirect()->back()->with('message', 'Todo created successfully!');
+        return redirect()->back()
+            ->withErrors($validator)
+            ->withInput();
     }
 
-```
-
-```
-
-```
-
-```
-
-```
-
-```
-
-```
-
+    Todo::create($request->all());
+    return redirect()->back()->with('message', 'Todo created successfully!');
+}
 ```
