@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 use App\Todo;
+use Illuminate\Support\Facades\Validator;
+
 
 use Illuminate\Http\Request;
 
@@ -19,6 +21,35 @@ class TodoController extends Controller
     public function store(Request $request)
     {
         // dd($request->all());
+        // if(!$request->title)
+        // {
+        //     return redirect()->back()->with('error', 'Please Give Title');
+        // }
+        //ABove code is not a good way of validation message. Many fields may be in DB.
+
+        ////Instead we use below lines of codes to validate
+        ////this code need another errors message added in alert.blade.php
+        // $request->validate([
+        //     'title'=>'required|max:255',
+        // ]);
+        //The above code above displays  built in error message. and prevents below code to execute
+
+        $rules =[
+            'title'=>'required|max:255',
+        ];
+        $messages = [
+            'title.max' => 'ToDo title should not be greater than 255 chars',
+        ];
+        $validator = Validator::make($request->all(), $rules, $messages);
+        //this code will not prevent below code code from eecuting so error will appears.
+        //so we need below segment to check
+        if ($validator->fails()) 
+        {
+            return redirect()->back()
+                        ->withErrors($validator)
+                        ->withInput();
+        }
+
         Todo::create($request->all());
         return redirect()->back()->with('message', 'Todo created successfully!');
     }
