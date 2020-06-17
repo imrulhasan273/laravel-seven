@@ -1517,3 +1517,391 @@ class TodoCreateRequest extends FormRequest
 ```
 
 > Now the `store` function of `TodoController` look very clean. And the function now do 2 things. 1. Create and 2. Redirect. And all the business logic of validation task are now moved in to its own dedicated file that is `TodoCreateRequest`.
+
+---
+
+## All todos
+
+---
+
+**How to get all the todos from database [todos table]**
+
+_Flow:_
+
+> `web.php` ---> `Route::get('/todos', 'TodoController@index');`
+
+> `TodoController.php` ---> `index()`
+
+**`TodoController.php`**
+
+```php
+public function index()
+{
+    $todos = Todo::all();
+    return $todos;
+    // return view('todos.index');
+}
+```
+
+How can we pass the `$todos` values from this page to `todos/index.blade.php` file?
+
+**Solution**
+
+**`TodoController.php`**
+
+```php
+public function index()
+{
+    $todos = Todo::all();
+    // return $todos;
+    return view('todos.index')->with(['todos'=> $todos]);
+}
+```
+
+**`todos/index.blade.php`**
+
+```php
+<h3>All todos</h3>
+
+<ul>
+    @foreach($todos as $todo)
+    <li>
+        {{ $todo->title }}
+    </li>
+    @endforeach
+</ul>
+```
+
+> But the look is not good. Now we will make it look better with the help of `tailwind` css.
+
+After adding CSS with HTML structure.
+
+**`todos/index.blade.php`**
+
+```php
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+    <title>Todos</title>
+</head>
+<body>
+    <div class="text-center pt-10">
+        <h1 class="text-2xl">All your ToDos</h1>
+        <ul>
+            @foreach($todos as $todo)
+            <li>
+                {{ $todo->title }}
+            </li>
+            @endforeach
+        </ul>
+    </div>
+</body>
+</html>
+```
+
+> Its its not good practice to have some same pice of code segment in multiple pages. Rather we can save common segemnt in another page. So that we can call it when needed.
+
+> Create a file named `layout.blade.php` inside `views/todos` directory. And this layout is only related to our **todo**. This file contains some common elements of other `todo` pages.
+
+**After Simplifying, the files look like below:**
+
+`views/todos/layout.blade.php`
+
+```php
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+    <title>Todos</title>
+</head>
+<body>
+    <div class="text-center pt-10">
+        @yield('content')
+    </div>
+</body>
+</html>
+```
+
+`todos/index.blade.php`
+
+```php
+@extends('todos.layout')
+@section('content')
+    <h1 class="text-2xl">All your ToDo's</h1>
+    <ul>
+        @foreach($todos as $todo)
+        <li>
+            {{ $todo->title }}
+        </li>
+        @endforeach
+    </ul>
+@endsection
+```
+
+`todos/create.blade.php`
+
+```php
+@extends('todos.layout')
+
+@section('content')
+    <h1 class="text-2xl">What next you need To-Do</h1>
+    <x-alert/>
+    <form action="/todos/create" method="POST" enctype="multipart/form-data" class="py-5">
+        @csrf <!-- this @csrf token handles routes in form -->
+        <input type="text" name="title" class="py-2 px-2 border"/>
+        <input type="submit" value="Create" class="p-2 border rounded"/>
+    </form>
+@endsection
+```
+
+`TodoController.php`
+
+```php
+public function index()
+{
+    $todos = Todo::all();
+    return view('todos.index', compact('todos'));
+}
+```
+
+> We can also simplify `index()` function of `TodoController.php`.
+> instead of `with()` we can use `compact()` method of PHP. Inside `compact('variable')`. `variable` should match with the **Variable** name. And no need to provide **`$`** sign inside `compact()` method.
+
+---
+
+# **Dynamic Route parameter**
+
+---
+
+-   We need a `create` button in the `todos/index.blade.php` to **create** new todo.
+
+-   We need a `back` button in the `todos/create.php` to come back to `index` page.
+
+-   We need `edit` buttons for every data in the `todos/index.blade.php` to edit value.
+
+`todos/index.blade.php`
+
+```php
+@extends('todos.layout')
+@section('content')
+<div class="flex justify-center">
+    <h1 class="text-2xl">All your ToDos</h1>
+    <a href="/todos/create" class="mx-5 py-1 px-1 bg-blue-400 cursor-pointer rounded text-white">Create New</a>
+</div>
+<ul class="my-5">
+    @foreach($todos as $todo)
+    <li class="flex justify-center py-2">
+       <p>{{$todo->title}}</p>
+       <a href="{{'/todos/'.$todo->id.'/edit'}}" class="mx-5 py-1 px-1 bg-orange-400 cursor-pointer rounded text-white">Edit</a>
+    </li>
+    @endforeach
+</ul>
+@endsection
+```
+
+> here in the `index.blade.php` when we edit a row we need to pass the `id` of `title` in `url` so that we can know which `title` should be edited through unique column `id`. So we passed the `id` into the `url`.
+
+`todos/create.blade.php`
+
+```php
+@extends('todos.layout')
+@section('content')
+    <h1 class="text-2xl">What next you need To-Do</h1>
+    <x-alert/>
+    <form action="/todos/create" method="POST" enctype="multipart/form-data" class="py-5">
+        @csrf <!-- this @csrf token handles routes in form -->
+        <input type="text" name="title" class="py-2 px-2 border"/>
+        <input type="submit" value="Create" class="p-2 border rounded"/>
+    </form>
+    <a href="/todos" class="m-5 py-1 px-1 bg-white-400 border cursor-pointer rounded text-black">Back</a>
+@endsection
+```
+
+> But now the problem is `404 | Not Found` when edit. Lets modify the `route`.
+
+`web.php`
+
+```php
+Route::get('/todos/id/edit', 'TodoController@edit');
+```
+
+> Still not working. Because this `id` is dynamic. So have a look for solution in documentation
+> [Required Parameter](https://laravel.com/docs/7.x/routing#required-parameters). Sometimes you will need to capture segments of the URI within your route. For example, you may need to capture a user's ID from the URL. You may do so by defining route parameters:
+
+`web.php`
+
+```php
+Route::get('/todos/{id}/edit', 'TodoController@edit');
+```
+
+> Now it works.
+
+**Now its time to work with `TodoController@edit`**
+
+`TodoController.php`
+
+```php
+public function edit($id)
+{
+    // dd($id);
+    $todo = Todo::find($id);
+    // return $todo;
+    return view('todos.edit', compact('todo'));
+    //inside todos directiory file named edit.blade.php
+}
+```
+
+`todos/edit.blade.php`
+
+```php
+@extends('todos.layout')
+@section('content')
+    {{ $todo->title }}
+@endsection
+```
+
+---
+
+# Route Model Binding
+
+---
+
+> When injecting a model ID to a route or controller action, for example: `find($id)`, you will often query to retrieve the model that corresponds to that ID. Laravel route model binding provides a convenient way to automatically inject the model instances directly into your routes. For example, instead of injecting a user's ID, you can inject the entire User model instance that matches the given ID.
+
+> Documentation: [Route Model Binding](https://laravel.com/docs/7.x/routing#route-model-binding)
+
+`web.php`
+
+```php
+Route::get('/todos/{todo}/edit', 'TodoController@edit');
+```
+
+`TodoController.php`
+
+```php
+public function edit(Todo $todo)
+{
+    dd($todo->title);
+    return view('todos.edit', compact('todo'));
+}
+```
+
+> Instead of using `$id` as parameter of `edit()` function. We Pass the `Model` name following by the `variable` name. And the `variable` name should match the `dynamic` variable name passes through `Route`. The `$todo` variable contains whole information related to that id.
+
+> Here `{todo}` in `Route` and `(Model $todo)`. Note: in route dynamic variable, there is no `$` sign starting of the variable.
+
+---
+
+-   What if we pass the `title` instead of `id`?
+    -   this will not work because `{ todo }` alaways try to find through `id`
+
+Documentation: [Customizing The Key](https://laravel.com/docs/7.x/routing#route-model-binding)
+
+below Route will now find through `title`.
+
+**`web.php`**
+
+```php
+Route::get('/todos/{todo:title}/edit', 'TodoController@edit');
+```
+
+**`todos/index.blade.php`**
+
+```php
+@extends('todos.layout')
+@section('content')
+<div class="flex justify-center">
+    <h1 class="text-2xl">All your ToDos</h1>
+    <a href="/todos/create" class="mx-5 py-1 px-1 bg-blue-400 cursor-pointer rounded text-white">Create New</a>
+</div>
+
+<ul class="my-5">
+    @foreach($todos as $todo)
+    <li class="flex justify-center py-2">
+       <p>{{$todo->title}}</p>
+       <a href="{{'/todos/'.$todo->title.'/edit'}}" class="mx-5 py-1 px-1 bg-orange-400 cursor-pointer rounded text-white">Edit</a>
+    </li>
+    @endforeach
+</ul>
+@endsection
+```
+
+> So this functionality is very `unique` things. That's why laravel is so powerful.
+
+---
+
+> If you always want to find the todo with `title` on route model binding.
+
+Documentation: [Customizing The Default Key Name](https://laravel.com/docs/7.x/routing#route-model-binding)
+
+**Add below function** to `Todo.php`
+
+```php
+public function getRouteKeyName()
+{
+    return 'title';
+}
+```
+
+`Todo.php`
+
+```php
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Todo extends Model
+{
+    protected $fillable = ['title'];
+
+    public function getRouteKeyName()
+    {
+        return 'title';
+    }
+}
+
+```
+
+`web.php`
+
+```php
+Route::get('/todos/{todo}/edit', 'TodoController@edit');
+```
+
+> So we don't need to use `{ todo:title}` instead of `{ todo }` as we customized the default key name in `Todo.php` **Model**.
+
+`todos/index.blade.php`
+
+```php
+@extends('todos.layout')
+@section('content')
+<div class="flex justify-center">
+    <h1 class="text-2xl">All your ToDos</h1>
+    <a href="/todos/create" class="mx-5 py-1 px-1 bg-blue-400 cursor-pointer rounded text-white">Create New</a>
+</div>
+
+<ul class="my-5">
+    @foreach($todos as $todo)
+    <li class="flex justify-center py-2">
+       <p>{{$todo->title}}</p>
+       <a href="{{'/todos/'.$todo->title.'/edit'}}" class="mx-5 py-1 px-1 bg-orange-400 cursor-pointer rounded text-white">Edit</a>
+    </li>
+    @endforeach
+</ul>
+@endsection
+```
+
+---
+
+# **Named Route**
+
+---

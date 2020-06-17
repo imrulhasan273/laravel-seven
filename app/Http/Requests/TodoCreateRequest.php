@@ -28,13 +28,10 @@ class TodoCreateRequest extends FormRequest
         ];
     }
 
-
     public function messages()
     {
         return [
             'title.max' => 'ToDo title should not be greater than 255 chars',
         ];
     }
-
-
 }

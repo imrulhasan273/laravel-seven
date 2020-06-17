@@ -18,8 +18,8 @@ use Illuminate\Http\Request;
 Route::get('/todos', 'TodoController@index');           //inside todos directiory file named index.blade.php
 Route::get('/todos/create', 'TodoController@create');    //inside todos directiory file named create.blade.php
 Route::post('/todos/create','TodoController@store');
-Route::get('/todos/edit', 'TodoController@edit');    //inside todos directiory file named edit.blade.php
-
+Route::get('/todos/{todo}/edit', 'TodoController@edit');    //inside todos directiory file named edit.blade.php
+// Route::get('/todos/{todo:title}/edit', 'TodoController@edit');
 
 
 //the below code is made with a closure

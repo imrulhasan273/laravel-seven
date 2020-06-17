@@ -12,7 +12,10 @@ class TodoController extends Controller
 {
     public function index()
     {
-        return view('todos.index');     //inside todos directiory file named index.blade.php
+        $todos = Todo::all();
+        // return $todos;   
+        // return view('todos.index')->with(['todos'=> $todos]);    //inside todos directiory file named index.blade.php  
+        return view('todos.index', compact('todos'));
     }
 
     public function create()
@@ -60,8 +63,13 @@ class TodoController extends Controller
         return redirect()->back()->with('message', 'Todo created successfully!');
     }
 
-    public function edit()
+    // public function edit($id)
+    public function edit(Todo $todo)
     {
-        return view('todos.edit');    //inside todos directiory file named edit.blade.php
+        // dd($todo->title);
+        // dd($id);
+        // $todo = Todo::find($id);
+        // return $todo;
+        return view('todos.edit', compact('todo'));    //inside todos directiory file named edit.blade.php
     }
 }
