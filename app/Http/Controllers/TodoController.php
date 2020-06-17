@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Validator;
 
 
 use Illuminate\Http\Request;
+use App\Http\Requests\TodoCreateRequest;
 
 class TodoController extends Controller
 {
@@ -18,7 +19,8 @@ class TodoController extends Controller
     {
         return view('todos.create');    //inside todos directiory file named create.blade.php
     }
-    public function store(Request $request)
+    // public function store(Request $request)
+    public function store(TodoCreateRequest $request)
     {
         // dd($request->all());
         // if(!$request->title)
@@ -34,21 +36,25 @@ class TodoController extends Controller
         // ]);
         //The above code above displays  built in error message. and prevents below code to execute
 
-        $rules =[
-            'title'=>'required|max:255',
-        ];
-        $messages = [
-            'title.max' => 'ToDo title should not be greater than 255 chars',
-        ];
-        $validator = Validator::make($request->all(), $rules, $messages);
-        //this code will not prevent below code code from eecuting so error will appears.
-        //so we need below segment to check
-        if ($validator->fails()) 
-        {
-            return redirect()->back()
-                        ->withErrors($validator)
-                        ->withInput();
-        }
+
+        //Validation own
+        // $rules =[
+        //     'title'=>'required|max:255',
+        // ];
+        // $messages = [
+        //     'title.max' => 'ToDo title should not be greater than 255 chars',
+        // ];
+        // $validator = Validator::make($request->all(), $rules, $messages);
+        // //this code will not prevent below code code from eecuting so error will appears.
+        // //so we need below segment to check
+        // if ($validator->fails()) 
+        // {
+        //     return redirect()->back()
+        //                 ->withErrors($validator)
+        //                 ->withInput();
+        // }
+        ////Now we commented the above validation methods becuase now requests are comming from
+        // the TodoCreateRequests
 
         Todo::create($request->all());
         return redirect()->back()->with('message', 'Todo created successfully!');

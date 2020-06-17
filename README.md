@@ -1344,3 +1344,176 @@ public function store(Request $request)
     return redirect()->back()->with('message', 'Todo created successfully!');
 }
 ```
+
+---
+
+## **From Validation**
+
+---
+
+> In laravel there is very easy for validating a form. So we don't need to define validation rules and function of our own. We can just use the built in system by laravel.
+
+> Documentation: [From Validation](https://laravel.com/docs/7.x/validation#form-request-validation")
+
+> For more complex validation scenarios, you may wish to create a "form request". Form requests are custom request classes that contain validation logic. To create a form request class, use the make:request Artisan CLI command:
+
+**To create our own form request we have command in laravel**
+
+**Create a Request**
+
+```cmd
+~$ php artisan make:request TodoCreateRequest
+```
+
+-   Directory: `App\Http\Requests\`
+    The new file looks like below:
+
+**`TodoCreateRequest`**
+
+```php
+<?php
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class TodoCreateRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     *
+     * @return bool
+     */
+    public function authorize()
+    {
+        return false;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        return [
+            //
+        ];
+    }
+}
+```
+
+> If the authorize method `returns false`, a HTTP response with a 403 status code will automatically be returned and your controller method will not execute. If you plan to have authorization logic in another part of your application, `return true` from the authorize method:
+
+```php
+/**
+ * Determine if the user is authorized to make this request.
+ *
+ * @return bool
+ */
+public function authorize()
+{
+    return true;
+}
+```
+
+> Now `$rules` move from `TodoController.php` to `TodoCreateRequest.php`
+
+Now `TodoCreateRequest.php`
+
+```php
+/**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        return [
+            'title'=>'required|max:255',
+        ];
+    }
+```
+
+> Now how we can use these rules? We will use our own form request `TodoCreateRequest`
+> instead of default parent `Request`. It will not affect any problem because `TodoCreateRequest` indirectly extends `Request`.
+
+> Now we deleted the validation method that was written in `TodoController.php` becuase now our `requests` are comming from the `TodoCreateRequests`
+
+> Use below header in `TodoController.php`
+
+```php
+use App\Http\Requests\TodoCreateRequest;
+```
+
+**`TodoCreateController.php`**
+
+```php
+public function store(TodoCreateRequest $request)
+{
+    Todo::create($request->all());
+    return redirect()->back()->with('message', 'Todo created successfully!');
+}
+```
+
+---
+
+> Now check in the dev server.
+
+> Now we are facing the problem of custom validation rules again. Because we want to display our `own message`.
+
+Solution: [Customizing The Error Messages](https://laravel.com/docs/7.x/validation#customizing-the-error-messages")
+
+Add the below function in `ToCreateRequest.php`
+
+```php
+public function messages()
+{
+    return [
+        'title.max' => 'ToDo title should not be greater than 255 chars',
+    ];
+}
+```
+
+**Now the `ToCreateRequest.php` looks like below**
+
+```php
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class TodoCreateRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     *
+     * @return bool
+     */
+    public function authorize()
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        return [
+            'title'=>'required|max:255',
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'title.max' => 'ToDo title should not be greater than 255 chars',
+        ];
+    }
+}
+```
+
+> Now the `store` function of `TodoController` look very clean. And the function now do 2 things. 1. Create and 2. Redirect. And all the business logic of validation task are now moved in to its own dedicated file that is `TodoCreateRequest`.
