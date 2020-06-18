@@ -72,4 +72,12 @@ class TodoController extends Controller
         // return $todo;
         return view('todos.edit', compact('todo'));    //inside todos directiory file named edit.blade.php
     }
+
+    public function update(TodoCreateRequest $request, Todo $todo)
+    {
+        // dd($request->all());
+        $todo->update(['title' => $request ->title]);
+        // return redirect()->back()->with('message','Updated!');
+        return redirect(route('todo.index'))->with('message','Updated!');
+    }
 }

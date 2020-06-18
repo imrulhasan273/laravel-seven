@@ -9,11 +9,14 @@
 
 # **Documentation of Laravel 7 Basics**
 
+<h3 style="color:green;">Md. Imrul Hasan</h3>
+<h5></h5>
+
 [Laravel Official Docx](https://laravel.com/docs/7.x)
 
 ---
 
-## **Installation**
+## <center>**Installation**</center>
 
 ---
 
@@ -114,7 +117,7 @@ Create a controller for User Model
 
 ---
 
-## **RAW Structured Query Language**
+## <center>**RAW Structured Query Language**</center>
 
 ---
 
@@ -192,7 +195,7 @@ class UserController extends Controller
 
 ---
 
-## **Eloquent ORM (Object Relational Model)**
+## <center>**Eloquent ORM (Object Relational Model)**</center>
 
 ---
 
@@ -442,7 +445,7 @@ then some dependency may need to fix
 
 ---
 
-## **Blade Template Engine**
+## <center>**Blade Template Engine**</center>
 
 ---
 
@@ -492,7 +495,7 @@ then some dependency may need to fix
 
 ---
 
-## **Laravel Configuration**
+## <center>**Laravel Configuration**</center>
 
 ---
 
@@ -547,7 +550,7 @@ Route::get('/', function () {
 
 ---
 
-## **Upload Avator/Profile Picture**
+## <center>**Upload Avator/Profile Picture**</center>
 
 ---
 
@@ -708,7 +711,7 @@ public function uploadAvatar(Request $request)
 
 ---
 
-## **Fixing the problem of not showing avator**
+## <center>**Fixing the problem of not showing avator**</center>
 
 ---
 
@@ -795,7 +798,7 @@ public function uploadAvatar(Request $request)
 
 ---
 
-## **Flash Session**
+## <center>**Flash Session**</center>
 
 ---
 
@@ -875,7 +878,7 @@ public function uploadAvatar(Request $request)
 
 ---
 
-## **Blade Include Subview**
+## <center>**Blade Include Subview**</center>
 
 ---
 
@@ -941,7 +944,7 @@ public function uploadAvatar(Request $request)
 
 ---
 
-## **TO DO list mini project #1**
+## <center>**TO DO list mini project #1**</center>
 
 ---
 
@@ -1024,7 +1027,7 @@ class CreateTodosTable extends Migration
 
 > We have done 3 task out of 4 now we need to make routes.
 
-## **To Do list mini project #2: Views, Store and Validation)**
+## <center>**To Do list mini project #2: Views, Store and Validation)**</center>
 
 > Create a `todos` directory inside the `resources/views/` So that all the todo related files will be stored in that directory.
 
@@ -1229,7 +1232,7 @@ public function store(Request $request)
 
 ---
 
-## **TO DO list mini project #5**
+## <center>**TO DO list mini project #5**</center>
 
 ---
 
@@ -1347,7 +1350,7 @@ public function store(Request $request)
 
 ---
 
-## **From Validation**
+## <center>**From Validation**</center>
 
 ---
 
@@ -1520,7 +1523,7 @@ class TodoCreateRequest extends FormRequest
 
 ---
 
-## All todos
+## <center>All todos</center>
 
 ---
 
@@ -1676,7 +1679,7 @@ public function index()
 
 ---
 
-# **Dynamic Route parameter**
+# <center>**Dynamic Route parameter**</center>
 
 ---
 
@@ -1769,7 +1772,7 @@ public function edit($id)
 
 ---
 
-# Route Model Binding
+# <center>**Route Model Binding**</center>
 
 ---
 
@@ -1902,6 +1905,258 @@ Route::get('/todos/{todo}/edit', 'TodoController@edit');
 
 ---
 
-# **Named Route**
+# <center>**Named Route**</center>
+
+---
+
+> Now we will update todo `title`. For that we need a `form` or a simple `textbox` in `edit.blade.php`.
+
+`todos/edit.blade.php`
+
+```php
+@extends('todos.layout')
+@section('content')
+    <h1 class="text-2xl">Update this Todo list</h1>
+    <x-alert/>
+    <form action="/todos/update" method="POST" enctype="multipart/form-data" class="py-5">
+        @csrf <!-- this @csrf token handles routes in form -->
+        <input type="text" name="title" value="{{ $todo->title }}" class="py-2 px-2 border"/>
+        <input type="submit" value="Update" class="p-2 border rounded"/>
+    </form>
+    <a href="/todos" class="m-5 py-1 px-1 bg-white-400 border cursor-pointer rounded text-black">Back</a>
+@endsection
+```
+
+`web.php`
+
+```php
+Route::patch('/todos/{todo}/update','TodoController@update');
+```
+
+> Now we need a `patch` request instead of `post` request. There is also `put` request. Both will work. And we need to update a specific `todo` so the route will be simiter to `store` route. like inside link we need to pass the todo `id` --> `{todo}`
+
+Creating a function named `update` inside `TodoController.php`.
+
+`TodoController.php`
+
+```php
+public function update(Todo $todo)
+{
+    //update code
+}
+```
+
+> Now how can we grab the `id` in between these -> `action="/todos/update"`
+
+> Named routes allow the convenient generation of URLs or redirects for specific routes. You may specify a name for a route by chaining the name method onto the route definition:
+
+> Documentation: [Named Route](https://laravel.com/docs/7.x/routing#named-routes).
+
+`web.php`
+
+```php
+Route::patch('/todos/{todo}/update','TodoController@update')->name('todo.update');
+```
+
+> what are you going to do? -> `todo` and the task is -> `update`. So `name('todo.update')`. This name route will be used inside `<form>` as an `action` for pathing.
+
+And the `todos/edit.blade.php` will be like below:
+
+```php
+@extends('todos.layout')
+@section('content')
+    <h1 class="text-2xl">Update this Todo list</h1>
+    <x-alert/>
+    <form method="post" action="{{route('todo.update',$todo->id)}}" class="py-5">
+        @csrf
+        <input type="text" name="title" value="{{ $todo->title }}" class="py-2 px-2 border"/>
+        <input type="submit" value="Update" class="p-2 border rounded"/>
+    </form>
+    <a href="/todos" class="m-5 py-1 px-1 bg-white-400 border cursor-pointer rounded text-black">Back</a>
+@endsection
+```
+
+> Now it works.... Now if we `inspect` element inside the `http://127.0.0.1:8000/todos/1/edit` page, we can see `action="http://127.0.0.1:8000/todos/1/update"` for the `form`.
+
+Let's check if update function works or not.
+
+`TodoController.php`
+
+```php
+public function update(Request $request, Todo $todo)
+{
+    dd($request->all());
+}
+```
+
+> We need `Request` inside the function parameter.
+
+> But update function didn't work. Error: `The POST method is not supported for this route. Supported methods: PATCH.`
+
+> So we need a `patch` method. We need a hack. We need to provide a `method` field and say `path` is the method. After updating the `edit.blade.php` file.
+
+`edit.blade.php`
+
+```php
+@extends('todos.layout')
+@section('content')
+    <h1 class="text-2xl">Update this Todo list</h1>
+    <x-alert/>
+    <form method="post" action="{{route('todo.update',$todo->id)}}" class="py-5">
+        @csrf
+        @method('patch')
+        <input type="text" name="title" value="{{ $todo->title }}" class="py-2 px-2 border"/>
+        <input type="submit" value="Update" class="p-2 border rounded"/>
+    </form>
+    <a href="/todos" class="m-5 py-1 px-1 bg-white-400 border cursor-pointer rounded text-black">Back</a>
+@endsection
+```
+
+Now we will make the `update` operation inside the `update` function on `TodoController`.
+
+`TodoController.php`
+
+```php
+public function update(Request $request, Todo $todo)
+{
+    $todo->update(['title' => $request ->title]);
+    return redirect()->back()->with('message','Updated!');
+}
+```
+
+> Update operation successful! And the page is redirect to the edit page.
+
+Below is the way to redirect to the `All Todo` page that's the main page.
+
+`TodoController.php`
+
+```php
+public function update(Request $request, Todo $todo)
+{
+    $todo->update(['title' => $request ->title]);
+    return redirect(route('todo.index'))->with('message','Updated!');
+}
+```
+
+> we also need to provide the **`Named Route`** of `index` route in `web.php` so that we can `route` it from anywhere with the `Named Route` only. We don't need to explicitely write the path there. Named routes is an important feature in the Laravel framework. It allows you to refer to the routes when generating URLs or redirects to the specific routes. In short, we can say that the naming route is the way of providing a nickname to the route.
+
+`web.php`
+
+```php
+Route::get('/todos', 'TodoController@index')->name('todo.index');
+```
+
+> We also need to add `<x-alert/>` in the `index.blade.php` to view the message.
+
+`index.blade.php`
+
+```php
+@extends('todos.layout')
+@section('content')
+<div class="flex justify-center">
+    <h1 class="text-2xl">All your ToDos</h1>
+    <a href="/todos/create" class="mx-5 py-1 px-1 bg-blue-400 cursor-pointer rounded text-white">Create New</a>
+</div>
+<x-alert/>
+<ul class="my-5">
+    @foreach($todos as $todo)
+    <li class="flex justify-center py-2">
+       <p>{{$todo->title}}</p>
+       <a href="{{'/todos/'.$todo->id.'/edit'}}" class="mx-5 py-1 px-1 bg-orange-400 cursor-pointer rounded text-white">Edit</a>
+    </li>
+    @endforeach
+</ul>
+@endsection
+```
+
+> Solved!!!
+
+---
+
+# <center>**Update Todo Validation**</center>
+
+---
+
+> Previously we have use validation which is `FormRequest` when we were storing the `todo`. We can create another `FormRequest` for update. But we want same kind of functionality, exactly same validation on the update. So we can use the same `FormRequest` also.
+
+Just replace the normal `Requst` with the `FormRequest` that's the `TodoCreateRequest`.
+
+```php
+public function update(TodoCreateRequest $request, Todo $todo)
+{
+    $todo->update(['title' => $request ->title]);
+    return redirect(route('todo.index'))->with('message','Updated!');
+}
+```
+
+> We can now successfully complete the validation.
+
+> Suppose, you will have the condition when you need to create a different **form request** for `update` only. For example, for the `store()` function if you have some kind of `upload` operation. Then you need `image` valodation also. So the validation for `TodoCreateRequest` will contains validation for `title` as well as `image`. But the problem is in `update()` operation you just want to update the `title` only not the `image`. Then if you use the same `FormRequest` also then you must update the `image` also because that `FromRequest` contains `image` validation also. So need to create another `FormRequest` for update operation.
+
+---
+
+> Now we beautify the message in page. Because the message block whole page with horizozntal line. And fix some padding and etc.
+
+After Cleaning up
+
+`layout.blade.php`
+
+```php
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+    <title>Todos</title>
+</head>
+<body>
+    <div class="text-center flex justify-center pt-10">
+        <div class="w-1/3 border border-grey-400 rounded py-4">
+        @yield('content')
+        </div>
+    </div>
+</body>
+</html>
+```
+
+`create.blade.php`
+
+```php
+@extends('todos.layout')
+
+@section('content')
+    <h1 class="text-2xl border-b pb-4">What next you need To-Do</h1>
+    <x-alert/>
+    <form action="/todos/create" method="POST" enctype="multipart/form-data" class="py-5">
+        @csrf <!-- this @csrf token handles routes in form -->
+        <input type="text" name="title" class="py-2 px-2 border"/>
+        <input type="submit" value="Create" class="p-2 border rounded"/>
+    </form>
+    <a href="/todos" class="m-5 py-1 px-1 bg-white-400 border cursor-pointer rounded text-black">Back</a>
+@endsection
+```
+
+`edit.blade.php`
+
+```php
+@extends('todos.layout')
+@section('content')
+    <h1 class="text-2xl border-b pb-4">Update this Todo list</h1>
+    <x-alert/>
+    <form method="post" action="{{route('todo.update',$todo->id)}}" class="py-5">
+        @csrf
+        @method('patch')
+        <input type="text" name="title" value="{{ $todo->title }}" class="py-2 px-2 border"/>
+        <input type="submit" value="Update" class="p-2 border rounded"/>
+    </form>
+    <a href="/todos" class="m-5 py-1 px-1 bg-white-400 border cursor-pointer rounded text-black">Back</a>
+@endsection
+```
+
+---
+
+# <center>**Complete a Todo**<center>
 
 ---
