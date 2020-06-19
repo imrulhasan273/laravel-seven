@@ -1935,9 +1935,11 @@ Route::patch('/todos/{todo}/update','TodoController@update');
 
 > Now we need a `patch` request instead of `post` request. There is also `put` request. Both will work. And we need to update a specific `todo` so the route will be simiter to `store` route. like inside link we need to pass the todo `id` --> `{todo}`
 
+> Difference between `GET`, `POST`, `PATCH` and `PUT`: [Difference](https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch)
+
 Creating a function named `update` inside `TodoController.php`.
 
-`TodoController.php`
+> `TodoController.php`
 
 ```php
 public function update(Todo $todo)
@@ -2155,8 +2157,380 @@ After Cleaning up
 @endsection
 ```
 
+`index.blade.php`
+
+```php
+@extends('todos.layout')
+@section('content')
+<div class="flex justify-center border-b pb-4">
+    <h1 class="text-2xl">All your ToDos</h1>
+    <a href="/todos/create" class="mx-5 py-1 px-1 bg-blue-400 cursor-pointer rounded text-white">Create New</a>
+</div>
+<x-alert/>
+<ul class="my-5">
+    @foreach($todos as $todo)
+    <li class="flex justify-between px-2 py-2">
+       <p>{{$todo->title}}</p>
+       <a href="{{'/todos/'.$todo->id.'/edit'}}" class="mx-5 py-1 px-1 bg-orange-400 cursor-pointer rounded text-white">Edit</a>
+    </li>
+    @endforeach
+</ul>
+@endsection
+
+
+```
+
 ---
 
 # <center>**Complete a Todo**<center>
 
 ---
+
+After beautify the `index` page.
+
+`TodoConroller.php`
+
+```php
+public function index()
+{
+    $todos = Todo::orderBy('completed')->get();
+    return view('todos.index', compact('todos'));
+}
+```
+
+> Documentation: [Order By](https://laravel.com/docs/7.x/eloquent#advanced-subqueries)
+
+> Use `Todo::orderBy('completed')->get();` instead of `Todo::all()`. We will use `get()` instead of `all()` when we have some task like `orderBy`.
+
+Completed task will be in `green` mark on the other hand incomplete task will be in `gray` mark. using below condition:
+
+```php
+@if($todo->completed)
+<span class="fas fa-check text-green-300 px-2"></span>
+@else
+<span class="fas fa-check text-gray-300 cursor-pointer px-2"></span>
+@endif
+```
+
+Completed task title is visualizd by `linethrough` like below code:
+
+```php
+@if($todo->completed)
+<p class="line-through">{{$todo->title}}</p>
+@else
+<p class="line-through">{{$todo->title}}</p>
+@endif
+```
+
+`todos/index.blade.php`
+
+```php
+@extends('todos.layout')
+@section('content')
+<div class="flex justify-center border-b pb-4">
+    <h1 class="text-2xl">All your ToDos</h1>
+    <a href="/todos/create" class="mx-5 py-1 px-1 bg-blue-400 cursor-pointer rounded text-white">Create New</a>
+</div>
+<x-alert/>
+<ul class="my-5">
+    @foreach($todos as $todo)
+    <li class="flex justify-between px-2 py-2">
+        @if($todo->completed)
+        <p class="line-through">{{$todo->title}}</p>
+        @else
+        <p>{{$todo->title}}</p>
+        @endif
+        <div>
+        <a href="{{'/todos/'.$todo->id.'/edit'}}" class="text-orange-400 cursor-pointer text-white">
+        <span class="fas fa-edit px-2"></span>
+        </a>
+        @if($todo->completed)
+        <span class="fas fa-check text-green-300 px-2"></span>
+        @else
+        <span class="fas fa-check text-gray-300 cursor-pointer px-2"></span>
+        @endif
+        </div>
+    </li>
+    @endforeach
+</ul>
+@endsection
+```
+
+---
+
+# <center>**Using Core JavaScript**</center>
+
+---
+
+## Task `Mark as Complete` for **todos**.
+
+We created the below `submit` form.
+
+```php
+<form style="display:none" id="{{'form-complete-'.$todo->id}}" method="post" action="{{ route('todo.complete', $todo->id) }}">
+@csrf
+@method('put')
+</form>
+```
+
+We added below line of code to submit form using `JS`
+
+```php
+<span onclick="event.preventDefault();
+                        document.getElementById('form-complete-{{$todo->id}}')
+                        .submit()"
+                        class="fas fa-check text-gray-300 cursor-pointer px-2">
+</span>
+```
+
+> We call the `form` using the `id` selector with JS.
+
+And the `index` page will look like below:
+
+**`todos/index.blade.php`**
+
+```php
+@extends('todos.layout')
+@section('content')
+<div class="flex justify-center border-b pb-4">
+    <h1 class="text-2xl">All your ToDos</h1>
+    <a href="/todos/create" class="mx-5 py-1 px-1 bg-blue-400 cursor-pointer rounded text-white">Create New</a>
+</div>
+<x-alert/>
+<ul class="my-5">
+    @foreach($todos as $todo)
+    <li class="flex justify-between px-2 py-2">
+        @if($todo->completed)
+        <p class="line-through">{{$todo->title}}</p>
+        @else
+        <p>{{$todo->title}}</p>
+        @endif
+        <div>
+        <a href="{{'/todos/'.$todo->id.'/edit'}}" class="text-orange-400 cursor-pointer text-white">
+        <span class="fas fa-edit px-2"></span>
+        </a>
+        @if($todo->completed)
+        <span class="fas fa-check text-green-300 px-2">
+        </span>
+        @else
+        <span onclick="event.preventDefault();
+                        document.getElementById('form-complete-{{$todo->id}}')
+                        .submit()"
+                        class="fas fa-check text-gray-300 cursor-pointer px-2">
+        </span>
+        <form style="display:none" id="{{'form-complete-'.$todo->id}}" method="post" action="{{ route('todo.complete', $todo->id) }}">
+        @csrf
+        @method('put')
+        </form>
+        @endif
+        </div>
+    </li>
+    @endforeach
+</ul>
+@endsection
+```
+
+**`web.php`**
+
+```php
+Route::put('/todos/{todo}/complete','TodoController@complete') -> name('todo.complete');
+```
+
+> `patch` and `put` is similar things so we can also use it.
+
+**`TodoController.php`**
+
+```php
+public function complete(Todo $todo)
+{
+    $todo->update(['completed'=> true]);
+    return redirect()->back()->with('message','Task Marked as Completed!!!');
+}
+```
+
+> The update operation.
+
+**`Todo.php`**
+
+```php
+class Todo extends Model
+{
+    protected $fillable = ['title','completed'];
+}
+```
+
+> Initially the `$fillable` variable didn't contains the `completed` column. So our value of `completed` column didn't take any effect in DB after updating. After we added the column in the variable. And the update process is successfull.
+
+---
+
+## Task `Mark as incomplete` for **todos**.
+
+> This segment is fully same as `complete` task. So I am not going to describe the process.
+
+**`web.php`**
+
+```php
+Route::delete('/todos/{todo}/incomplete','TodoController@incomplete') -> name('todo.incomplete');
+```
+
+> `delete` is another alternative of `patch` or `put`.
+
+`**TodoController.php`\*\*
+
+```php
+public function incomplete(Todo $todo)
+{
+    $todo->update(['completed'=> false]);
+    return redirect()->back()->with('message','Task UnMarked as Completed!!!');
+}
+```
+
+`**todos/index.blade.php`\*\*
+
+```php
+@extends('todos.layout')
+@section('content')
+<div class="flex justify-center border-b pb-4 px-4">
+    <h1 class="text-2xl">All your ToDos</h1>
+    <a href="/todos/create" class="mx-5 py-2 text-blue-400 cursor-pointer text-white">
+    <span class="fas fa-plus-circle"></span>
+    </a>
+</div>
+<x-alert/>
+<ul class="my-5">
+    @foreach($todos as $todo)
+    <li class="flex justify-between px-2 py-2">
+        @if($todo->completed)
+        <p class="line-through">{{$todo->title}}</p>
+        @else
+        <p>{{$todo->title}}</p>
+        @endif
+        <div>
+        <a href="{{'/todos/'.$todo->id.'/edit'}}" class="text-orange-400 cursor-pointer text-white">
+        <span class="fas fa-edit px-2"></span>
+        </a>
+        @if($todo->completed)
+        <span onclick="event.preventDefault();
+                        document.getElementById('form-incomplete-{{$todo->id}}')
+                        .submit()" class="fas fa-check text-green-300 cursor-pointer px-2">
+        </span>
+        <form style="display:none" id="{{'form-incomplete-'.$todo->id}}" method="post" action="{{ route('todo.incomplete', $todo->id) }}">
+        @csrf
+        @method('delete')
+        </form>
+        @else
+        <span onclick="event.preventDefault();
+                        document.getElementById('form-complete-{{$todo->id}}')
+                        .submit()"
+                        class="fas fa-check text-gray-300 cursor-pointer px-2">
+        </span>
+        <form style="display:none" id="{{'form-complete-'.$todo->id}}" method="post" action="{{ route('todo.complete', $todo->id) }}">
+        @csrf
+        @method('put')
+        </form>
+        @endif
+        </div>
+    </li>
+    @endforeach
+</ul>
+@endsection
+```
+
+---
+
+## Delete a task in **todos**.
+
+**`web.php1**
+
+```php
+Route::delete('/todos/{todo}/delete','TodoController@delete') -> name('todo.delete');
+```
+
+**`todos/index.blade.php`**
+
+```php
+@extends('todos.layout')
+@section('content')
+<div class="flex justify-center border-b pb-4 px-4">
+    <h1 class="text-2xl">All your ToDos</h1>
+    <a href="/todos/create" class="mx-5 py-2 text-blue-400 cursor-pointer text-white">
+    <span class="fas fa-plus-circle"></span>
+    </a>
+</div>
+<x-alert/>
+<ul class="my-5">
+    @foreach($todos as $todo)
+    <li class="flex justify-between px-2 py-2">
+        @include('todos.complete-button')
+
+        @if($todo->completed)
+        <p class="line-through">{{$todo->title}}</p>
+        @else
+        <p>{{$todo->title}}</p>
+        @endif
+        <div>
+        <a href="{{'/todos/'.$todo->id.'/edit'}}" class="text-orange-400 cursor-pointer text-white">
+        <span class="fas fa-edit px-2"></span>
+        </a>
+
+        <span class="fas fa-trash text-red-500 px-2 cursor-pointer"
+                        onclick="event.preventDefault();
+                        if(confirm('Are you sure to delete?'))
+                        {
+                            document.getElementById('form-delete-{{$todo->id}}')
+                            .submit()
+                        }"></span>
+
+        <form style="display:none" id="{{'form-delete-'.$todo->id}}" method="post" action="{{ route('todo.delete', $todo->id) }}">
+        @csrf
+        @method('delete')
+        </form>
+        </div>
+    </li>
+    @endforeach
+</ul>
+@endsection
+```
+
+> Some changes in `index`. We move the code of `complete` and `incomplete` logic in another file for simplicity, named `complete-button.blade.php`.
+
+> Any user may delete the task accidentaly that's why there will display an alert window after click on delete button, if user is sure to delete the task.
+
+**`todos/complete-button.blade.php`**
+
+```php
+@if($todo->completed)
+<span onclick="event.preventDefault();
+                        document.getElementById('form-incomplete-{{$todo->id}}')
+                        .submit()" class="fas fa-check text-green-300 cursor-pointer px-2">
+</span>
+<form style="display:none" id="{{'form-incomplete-'.$todo->id}}" method="post" action="{{ route('todo.incomplete', $todo->id) }}">
+@csrf
+@method('delete')
+</form>
+@else
+<span onclick="event.preventDefault();
+                        document.getElementById('form-complete-{{$todo->id}}')
+                        .submit()"
+                        class="fas fa-check text-gray-300 cursor-pointer px-2">
+</span>
+<form style="display:none" id="{{'form-complete-'.$todo->id}}" method="post" action="{{ route('todo.complete', $todo->id) }}">
+@csrf
+@method('put')
+</form>
+@endif
+```
+
+**`TodoController.php`**
+
+```php
+public function delete(Todo $todo)
+{
+    $todo->delete();
+    return redirect()->back()->with('message', $todo->title.' Task Deleted!!!');
+}
+```
+
+---
+
+# <center>**Resource Routes**</center>

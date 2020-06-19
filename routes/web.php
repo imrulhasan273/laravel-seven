@@ -21,6 +21,9 @@ Route::post('/todos/create','TodoController@store');
 Route::get('/todos/{todo}/edit', 'TodoController@edit');    //inside todos directiory file named edit.blade.php
 // Route::get('/todos/{todo:title}/edit', 'TodoController@edit');
 Route::patch('/todos/{todo}/update','TodoController@update') -> name('todo.update');
+Route::put('/todos/{todo}/complete','TodoController@complete') -> name('todo.complete');
+Route::delete('/todos/{todo}/incomplete','TodoController@incomplete') -> name('todo.incomplete');
+Route::delete('/todos/{todo}/delete','TodoController@delete') -> name('todo.delete');
 
 //the below code is made with a closure
 Route::get('/', function () {
