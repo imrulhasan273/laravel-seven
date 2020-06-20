@@ -2534,3 +2534,244 @@ public function delete(Todo $todo)
 ---
 
 # <center>**Resource Routes**</center>
+
+> In `web.php` we created 6 routes for `todo` thats are for insert, update and delete operation. But we can combine all together in a route called `Rosource Route`.
+
+> Documentation [Rosource ROute](https://laravel.com/docs/7.x/controllers#resource-controllers)
+
+> First thing you requred a `resource controller` which is done by this command -> `php artisan make:controller PhotoController --resource`. But because we have already done with the controllers in `web.php`, we can directly use like this `Route::resource('photos', 'PhotoController');`
+
+Before adding the resource route, the 6 defined route in `web.php` is given below:
+
+```php
+Route::get('/todos', 'TodoController@index')->name('todo.index');
+Route::get('/todos/create', 'TodoController@create');
+Route::post('/todos/create','TodoController@store');
+Route::get('/todos/{todo}/edit', 'TodoController@edit');
+Route::patch('/todos/{todo}/update','TodoController@update') -> name('todo.update');
+Route::delete('/todos/{todo}/destroy','TodoController@delete') -> name('todo.delete');
+```
+
+So the below only one route itself will replace the 6 defined routes.
+
+```php
+Route::resource('/todo','TodoController');
+```
+
+> Notice that we set `path` of the resource route as `/todo` instead of `/todos`.
+
+**Actions Handled By Resource Controller**
+
+| Verb      | URI                  | Action  | Route Name     |
+| --------- | -------------------- | ------- | -------------- |
+| GET       | /photos              | index   | photos.index   |
+| GET       | /photos/create       | create  | photos.create  |
+| POST      | /photos              | store   | photos.store   |
+| GET       | /photos/{photo}      | show    | photos.show    |
+| GET       | /photos/{photo}/edit | edit    | photos.edit    |
+| PUT/PATCH | /photos/{photo}      | update  | photos.update  |
+| DELETE    | /photos/{photo}      | destroy | photos.destroy |
+
+> let's create a resource route and compare wether we we read this resource route or not using following command.
+
+```cmd
+~$ php artisan make:controller TodoResourceController --resource
+```
+
+Now I can differentiated with exixting controller and the controller I just created.
+
+A file, named `TodoResourceController` is created in `app\Http\Controllers\TodoResourceController.php` directory.
+like below:
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class TodoResourceController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        //
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        //
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        //
+    }
+}
+```
+
+> We don't need to use this function in `TodoResourceController`. Because we have implemented those function in`TodoController.php` before. And those function override these functions. So don't worry about this.
+
+> To see all the route name including function name type the command `php artisan route:list`
+
+Edit the name of `delete` function to `destroy`
+
+```php
+public function destroy(Todo $todo)
+{
+    $todo->delete();
+    return redirect()->back()->with('message', $todo->title.' Task Deleted!!!');
+}
+```
+
+`index.blade.php` (updated)
+
+```php
+@extends('todos.layout')
+@section('content')
+<div class="flex justify-center border-b pb-4 px-4">
+    <h1 class="text-2xl">All your ToDos</h1>
+    <a href="{{route('todo.create')}}" class="mx-5 py-2 text-blue-400 cursor-pointer text-white">
+    <span class="fas fa-plus-circle"></span>
+    </a>
+</div>
+<x-alert/>
+<ul class="my-5">
+    @foreach($todos as $todo)
+    <li class="flex justify-between px-2 py-2">
+        @include('todos.complete-button')
+
+        @if($todo->completed)
+        <p class="line-through">{{$todo->title}}</p>
+        @else
+        <p>{{$todo->title}}</p>
+        @endif
+        <div>
+        <a href="{{ route('todo.edit',$todo->id )}}" class="text-orange-400 cursor-pointer text-white">
+        <span class="fas fa-edit px-2"></span>
+        </a>
+
+        <span class="fas fa-trash text-red-500 px-2 cursor-pointer"
+                        onclick="event.preventDefault();
+                        if(confirm('Are you sure to delete?'))
+                        {
+                            document.getElementById('form-delete-{{$todo->id}}')
+                            .submit()
+                        }"></span>
+
+        <form style="display:none" id="{{'form-delete-'.$todo->id}}" method="post" action="{{ route('todo.destroy', $todo->id) }}">
+        @csrf
+        @method('delete')
+        </form>
+        </div>
+    </li>
+    @endforeach
+</ul>
+@endsection
+```
+
+> We just change some of the route using `named routes` instead of `hard code path`.
+
+`edit.blade.php` (updated)
+
+```php
+@extends('todos.layout')
+@section('content')
+    <h1 class="text-2xl border-b pb-4">Update this Todo list</h1>
+    <x-alert/>
+    <form method="post" action="{{route('todo.update',$todo->id)}}" class="py-5">
+        @csrf
+        @method('patch')
+        <input type="text" name="title" value="{{ $todo->title }}" class="py-2 px-2 border"/>
+        <input type="submit" value="Update" class="p-2 border rounded"/>
+    </form>
+    <a href="{{ route ('todo.index')}}" class="m-5 py-1 px-1 bg-white-400 border cursor-pointer rounded text-black">Back</a>
+@endsection
+```
+
+> We just change some of the route using `named routes` instead of `hard code path`
+
+`create.blade.php`
+
+```php
+@extends('todos.layout')
+
+@section('content')
+    <h1 class="text-2xl border-b pb-4">What next you need To-Do</h1>
+    <x-alert/>
+    <form action="{{ route('todo.store') }}" method="POST" enctype="multipart/form-data" class="py-5">
+        @csrf <!-- this @csrf token handles routes in form -->
+        <input type="text" name="title" class="py-2 px-2 border"/>
+        <input type="submit" value="Create" class="p-2 border rounded"/>
+    </form>
+    <a href="{{route('todo.index')}}" class="m-5 py-1 px-1 bg-white-400 border cursor-pointer rounded text-black">Back</a>
+@endsection
+```
+
+> We just change some of the route using `named routes` instead of `hard code path`
+
+---
+
+# <center>**Middlewares**</center>
+
+---
