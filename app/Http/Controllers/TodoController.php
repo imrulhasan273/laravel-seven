@@ -10,6 +10,14 @@ use App\Http\Requests\TodoCreateRequest;
 
 class TodoController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('auth');
+        // $this->middleware('auth')->except('index');
+        // $this->middleware('auth')->only('index');
+    }
+
     public function index()
     {   
         // $todos = Todo::all();
@@ -60,6 +68,10 @@ class TodoController extends Controller
         ////Now we commented the above validation methods becuase now requests are comming from
         // the TodoCreateRequests
 
+
+        $userId             = auth()->id();
+        $request['user_id'] = $userId;
+        
         Todo::create($request->all());
         return redirect()->back()->with('message', 'Todo created successfully!');
     }

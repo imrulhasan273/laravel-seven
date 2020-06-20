@@ -2775,3 +2775,151 @@ public function destroy(Todo $todo)
 # <center>**Middlewares**</center>
 
 ---
+
+> Documentation [MiddleWare](https://laravel.com/docs/7.x/middleware#introduction)
+
+> Middle Ware Dir: `E:\github\seven\app\Http\Middleware\`
+
+> If we go to `E:\github\seven\app\Http\Kernel.php` we will se we have a list of middleware that we already applied on Laravel. Laravel do all these things out of the box.
+
+> Route Model Binding that actually works with these kind of `middleware`.
+
+> But we gonna use the middleware which is called `Authenticate` middleware.
+
+> If `user` is `logged in` then will will do something, otherwise we will `redirect` back that means some routes are `protected`.
+
+> To assign middleware to all routes within a group, you may use the middleware method before defining the group. Middleware are executed in the order they are listed in the array:
+
+We will use the `GroupedMiddleWare` now. [Route Groups](https://laravel.com/docs/7.x/routing#route-parameters)
+
+## 3 ways to do that:
+
+**Way 1:**
+
+`web.php`
+
+```php
+Route::middleware('auth')->group(function(){
+    Route::resource('/todo','TodoController');
+    Route::put('/todos/{todo}/complete','TodoController@complete') -> name('todo.complete');
+    Route::delete('/todos/{todo}/incomplete','TodoController@incomplete') -> name('todo.incomplete');
+});
+```
+
+> We put all the `todos` route inside the `group-middleware`. So that no one can visits those routes without authentication.
+
+**Way 2:**
+
+`TodoController.php`
+
+```php
+public function __construct()
+{
+    $this->middleware('auth');
+}
+```
+
+> We can also set the middleware in the `Controller` that's the `TodoController.php` instead of set in `web.php`.
+
+> So we created a constructor above all functions like above.
+
+**Way 3:**
+
+`web.php`
+
+```php
+Route::resource('/todo','TodoController')->middleware('auth');
+```
+
+> This type of way is use for individual `route`.
+
+**From the above 3 ways of `middleware` technique I think `Controller` middle ware is easier to manipulate.**
+
+---
+
+If we want to access `todo` index page without authenticating. Other pages `(delete, update, add)` need authentication. How to do that?
+
+`TodoController.php`
+
+```php
+public function __construct()
+{
+    $this->middleware('auth')->except('index');
+}
+```
+
+> This means we need `authentication` without index page.
+
+---
+
+# <center>**Elequent Relationship**</center>
+
+---
+
+**One to Many** relationship: [Elequent Relationship](https://laravel.com/docs/7.x/eloquent-relationships#one-to-many)
+
+First create a `One to Many` relationship among `user` and `todos`
+
+`User.php`
+
+```php
+public function todos()
+{
+    return $this->hasMany(Todo::class);
+}
+```
+
+> Remember, Eloquent will automatically determine the proper foreign key column on the Comment model. By convention, Eloquent will take the "snake case" name of the owning model and suffix it with `_id`. So, for this example, Eloquent will assume the foreign key on the Comment model is `post_id`.
+
+> In our case Model name is `User`, So the foreign key is `user_id`. We we need `user_id` in our Todo table.
+
+We added below column in `Todo` table for foreign key constraint.
+
+```php
+$table->unsignedBigInteger('user_id');
+$table->foreign('user_id')->references('id')->on('users');
+```
+
+Now the table will look like below:
+
+```php
+Schema::create('todos', function (Blueprint $table) {
+    $table->id();
+    $table->string('title');
+    $table->unsignedBigInteger('user_id');
+    $table->foreign('user_id')->references('id')->on('users');
+    $table->boolean('completed')->default(false);
+    $table->timestamps();
+});
+```
+
+> Documentation: [Foreign Key Constraint](https://laravel.com/docs/7.x/migrations#foreign-key-constraints)
+
+`TodoController.php`
+
+```php
+public function store(TodoCreateRequest $request)
+{
+    $userId             = auth()->id();
+    $request['user_id'] = $userId;
+
+    Todo::create($request->all());
+    return redirect()->back()->with('message', 'Todo created successfully!');
+}
+```
+
+> To grab the `user` and save the `user_id` in `todo` table, we use the first 2 lines of code on above function.
+
+Another preblem arises. We need to Mask Assignemnt on `Model`
+
+`Todo.php`
+
+```php
+protected $fillable = ['title','completed','user_id'];
+```
+
+> Above code should be written in the model. Here `user_id` is added now.
+
+---
+
+---

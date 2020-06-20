@@ -74,4 +74,9 @@ class User extends Authenticatable
     //     return 'My name is: '.ucfirst($name);
     // }
     
+    //Relationsip
+    public function todos()
+    {
+        return $this->hasMany(Todo::class);
+    }
 }

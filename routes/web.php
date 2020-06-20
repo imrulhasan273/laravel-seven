@@ -4,16 +4,13 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Http\Request;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
+//Here is the Groupe Middle ware
+// Route::middleware('auth')->group(function(){
+    Route::resource('/todo','TodoController');
+    // Route::resource('/todo','TodoController')->middleware('auth');
+    Route::put('/todos/{todo}/complete','TodoController@complete') -> name('todo.complete');
+    Route::delete('/todos/{todo}/incomplete','TodoController@incomplete') -> name('todo.incomplete');
+// });
 
 // Route::get('/todos', 'TodoController@index')->name('todo.index');           //inside todos directiory file named index.blade.php
 // Route::get('/todos/create', 'TodoController@create');    //inside todos directiory file named create.blade.php
@@ -23,12 +20,7 @@ use Illuminate\Http\Request;
 // Route::patch('/todos/{todo}/update','TodoController@update') -> name('todo.update');
 // Route::delete('/todos/{todo}/delete','TodoController@delete') -> name('todo.delete');
 ///Instead of above 6 routes we will do all 6 routes with resource route below:
-Route::resource('/todo','TodoController');
 
-
-
-Route::put('/todos/{todo}/complete','TodoController@complete') -> name('todo.complete');
-Route::delete('/todos/{todo}/incomplete','TodoController@incomplete') -> name('todo.incomplete');
 
 
 //the below code is made with a closure
