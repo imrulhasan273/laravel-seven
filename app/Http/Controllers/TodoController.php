@@ -35,6 +35,13 @@ class TodoController extends Controller
     {
         return view('todos.create');    //inside todos directiory file named create.blade.php
     }
+
+    public function show(Todo $todo)
+    {
+        // return $todo;
+        return view('todos.show', compact('todo'));
+    }
+
     // public function store(Request $request)
     public function store(TodoCreateRequest $request)
     {
@@ -98,6 +105,7 @@ class TodoController extends Controller
     public function update(TodoCreateRequest $request, Todo $todo)
     {
         // dd($request->all());
+        $todo->update(['description' => $request ->description]);
         $todo->update(['title' => $request ->title]);
         // return redirect()->back()->with('message','Updated!');
         return redirect(route('todo.index'))->with('message','Updated!');
@@ -121,3 +129,4 @@ class TodoController extends Controller
         return redirect()->back()->with('message', $todo->title.' Task Deleted!!!');
     }
 }
+

@@ -3281,3 +3281,153 @@ public function store(TodoCreateRequest $request)
 # <center>**Add Description to Todo**</center>
 
 ---
+
+Add `$table->text('description');` in `Todo Table` in mirgations.
+
+```php
+public function up()
+{
+    Schema::create('todos', function (Blueprint $table) {
+        $table->id();
+        $table->string('title');
+        $table->text('description');
+        $table->unsignedBigInteger('user_id');
+        $table->foreign('user_id')->references('id')->on('users');
+        $table->boolean('completed')->default(false);
+        $table->timestamps();
+    });
+}
+```
+
+And also fill the mask assignment.
+
+`Todo.php`
+
+```php
+class Todo extends Model
+{
+    protected $fillable = ['title','completed','user_id','description'];
+}
+```
+
+Or we can use `Guard` so that we dont need to fill the `column`
+
+`Todo.php`
+
+```php
+class Todo extends Model
+{
+    protected $guarded = [];
+}
+```
+
+> Now in dev server try to create a `todo`. But error occurs. Because we didn't create a description field in create page. `Description` field is required to fill. So to solve this error we must create a field in create page to add `description` in that column. So that we can fill that column.
+
+The form in create page will look like below:
+`todos/create.blade.php`
+
+```php
+    <form action="{{ route('todo.store') }}" method="POST" enctype="multipart/form-data" class="py-5">
+        @csrf <!-- this @csrf token handles routes in form -->
+        <div class="py-1">
+            <input type="text" name="title" class="py-2 px-2 border" placeholder="Title"/>
+        </div>
+
+        <div  class="py-1">
+            <textarea name="description" class="p-2 border rounded" placeholder="Description"></textarea>
+        </div>
+
+        <div  class="py-1">
+            <input type="submit" value="Create" class="p-2 border rounded"/>
+        </div>
+    </form>
+```
+
+We can also escape the error by using the following code in `table`
+
+```php
+$table->text('description')->nullable();
+```
+
+> So that this field have been set to `not-required`. By default it was `required`.
+
+---
+
+# <center>**View Todo Description**</center>
+
+---
+
+Let's first create a link over `title` using built-in show method of `resources` in the `index.blade.php` file
+
+```php
+<a class="cursor-pointer" href="{{ route('todo.show', $todo->id) }}">{{$todo->title}}</a>
+```
+
+Now create a `show()` function inside `TodoController.php`.
+
+```php
+public function show(Todo $todo)
+{
+    // return $todo;
+    return view('todos.show', compact('todo'));
+}
+```
+
+To view the page let's create another pages named `todos/show.blade.php`
+
+```php
+@extends('todos.layout')
+@section('content')
+    <div class="flex justify-center border-b pb-4 px-4">
+        <h1 class="text-2xl pb-4">{{$todo->title}}</h1>
+        <a href="{{route('todo.index')}}" class="mx-5 py-2 text-gray-400 cursor-pointer text-white">
+        <span class="fas fa-arrow-left"></span>
+        </a>
+    </div>
+
+    <div>
+        <div>
+            <p>{{ $todo->description }}</p>
+        </div>
+    </div>
+@endsection
+```
+
+> Before..., we can only update the `title`. Now we gonna update the page to update the `description` column too.
+
+The `edit.blade.php` form will look like below:
+
+```php
+    <form method="post" action="{{route('todo.update',$todo->id)}}" class="py-5">
+        @csrf
+        @method('patch')
+        <div class="py-1">
+            <input type="text" name="title" value="{{ $todo->title }}" class="py-2 px-2 border" placeholder="Title"/>
+        </div>
+
+        <div  class="py-1">
+            <textarea name="description" class="p-2 border rounded" placeholder="Description">{{ $todo->description }}</textarea>
+        </div>
+
+        <div  class="py-1">
+            <input type="submit" value="Update" class="p-2 border rounded"/>
+        </div>
+    </form>
+```
+
+To update the Description we need to edit the `update` function inside `TodoController.php`
+
+```php
+public function update(TodoCreateRequest $request, Todo $todo)
+{
+    $todo->update(['description' => $request ->description]);
+    $todo->update(['title' => $request ->title]);
+    return redirect(route('todo.index'))->with('message','Updated!');
+}
+```
+
+---
+
+---
+
+# <center>**Laravel LiveWire**</center>
