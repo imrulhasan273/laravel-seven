@@ -3144,3 +3144,140 @@ Gives Same result
 ## <center>**Redirect to Todo After login**</center>
 
 ---
+
+> Currently after login that redirect to the `home` page. But I want redirect to the `todo` page.
+
+> Dir: `seven\app\Http\Controllers\Auth\LoginController.php` is responsible for log in.
+
+Default Route After log in:
+
+```php
+protected $redirectTo = RouteServiceProvider::HOME;
+```
+
+Changing `'HOME'` to `'/todo'` for redirecting when login.
+
+`LoginController.php`
+
+```php
+protected $redirectTo = '/todo';
+```
+
+> Now we are redirect to the `/todo` page after login.
+
+Similartly we change the redirect page after registering.
+
+`RegisterController.php`
+
+```php
+protected $redirectTo = '/todo';
+```
+
+---
+
+# <center>**Message if no todo is availabe**</center>
+
+> We can add below condition in `index.blade.php` so that of any user have no todo, then user will se the message that, `"No task availabe here."`
+
+### Way 1:
+
+`todos/index.blade.php`
+
+```php
+@if($todos->count() > 0)
+    @foreach ($users as $user)
+        <p>This is user {{ $user->id }}</p>
+    @endforeach
+@else
+    <p> No task availabe here.</p>
+@endif
+```
+
+### Way 2:
+
+> Documentation [Loops](https://laravel.com/docs/7.x/blade#loops)
+
+> Use `forelse` instead of `foreach`.
+
+So instead of `way 1` we use `way 2`
+
+`todos/index.blade.php`
+
+```php
+@forelse ($users as $user)
+    <li>{{ $user->name }}</li>
+@empty
+    <p>No users</p>
+@endforelse
+```
+
+> **`Way 2`** is much smarter than `way 1`
+
+---
+
+Now beautify `create.blade.php`
+
+```php
+@extends('todos.layout')
+
+@section('content')
+    <div class="flex justify-center border-b pb-4 px-4">
+        <h1 class="text-2xl pb-4">What next you need To-Do</h1>
+        <a href="{{route('todo.index')}}" class="mx-5 py-2 text-gray-400 cursor-pointer text-white">
+        <span class="fas fa-arrow-left"></span>
+        </a>
+    </div>
+
+
+    <x-alert/>
+    <form action="{{ route('todo.store') }}" method="POST" enctype="multipart/form-data" class="py-5">
+        @csrf <!-- this @csrf token handles routes in form -->
+        <input type="text" name="title" class="py-2 px-2 border"/>
+        <input type="submit" value="Create" class="p-2 border rounded"/>
+    </form>
+@endsection
+```
+
+> arrow back button using font awesome is added instead of normal button.
+
+Now beautify `edit.blade.php`
+
+```php
+@extends('todos.layout')
+@section('content')
+    <div class="flex justify-center border-b pb-4 px-4">
+        <h1 class="text-2xl pb-4">Update this Todo list</h1>
+        <a href="{{route('todo.index')}}" class="mx-5 py-2 text-gray-400 cursor-pointer text-white">
+        <span class="fas fa-arrow-left"></span>
+        </a>
+    </div>
+
+    <x-alert/>
+    <form method="post" action="{{route('todo.update',$todo->id)}}" class="py-5">
+        @csrf
+        @method('patch')
+        <input type="text" name="title" value="{{ $todo->title }}" class="py-2 px-2 border"/>
+        <input type="submit" value="Update" class="p-2 border rounded"/>
+    </form>
+@endsection
+```
+
+Redirect to the `index` page after creating a `todo` is using the following code:
+
+`TodoController.php`
+
+```php
+public function store(TodoCreateRequest $request)
+{
+    auth()->user()->todos()->create($request->all());
+    return redirect(route('todo.index'))->with('message', 'Todo created successfully!');
+}
+```
+
+---
+
+---
+
+# <center>**Add Description to Todo**</center>
+
+---
