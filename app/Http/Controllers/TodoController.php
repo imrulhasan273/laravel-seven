@@ -21,7 +21,11 @@ class TodoController extends Controller
     public function index()
     {   
         // $todos = Todo::all();
-        $todos = Todo::orderBy('completed')->get();
+        // $todos = auth()->user()->todos()->orderBy('completed')->get();
+        $todos = auth()->user()->todos->sortBy('completed');
+        // return $todos;
+
+        // $todos = Todo::orderBy('completed')->get();
         // return $todos;   
         // return view('todos.index')->with(['todos'=> $todos]);    //inside todos directiory file named index.blade.php  
         return view('todos.index', compact('todos'));
@@ -68,11 +72,15 @@ class TodoController extends Controller
         ////Now we commented the above validation methods becuase now requests are comming from
         // the TodoCreateRequests
 
+        ////way: 1
+        // $userId             = auth()->id();
+        // $request['user_id'] = $userId;
 
-        $userId             = auth()->id();
-        $request['user_id'] = $userId;
-        
-        Todo::create($request->all());
+        // dd(auth()->user()->todos());
+
+        auth()->user()->todos()->create($request->all());
+
+        // Todo::create($request->all());
         return redirect()->back()->with('message', 'Todo created successfully!');
     }
 

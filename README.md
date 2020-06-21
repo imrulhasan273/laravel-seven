@@ -2880,7 +2880,9 @@ $table->unsignedBigInteger('user_id');
 $table->foreign('user_id')->references('id')->on('users');
 ```
 
-Now the table will look like below:
+> Here firts we create an `user_id` column in `Todo` table. Then we reference this `user_id` to column `user_id` on `User` table.
+
+> Now the table will look like below:
 
 ```php
 Schema::create('todos', function (Blueprint $table) {
@@ -2921,5 +2923,224 @@ protected $fillable = ['title','completed','user_id'];
 > Above code should be written in the model. Here `user_id` is added now.
 
 ---
+
+---
+
+## Alternative way: One to Many (Best way)
+
+Documentation: [Insering and Updating Related Model](https://laravel.com/docs/7.x/eloquent-relationships#inserting-and-updating-related-models)
+
+We added `dd(auth()->user());` in `store` function in `TodoController.php`
+
+```json
+App\User {#1221 ▼
+  #fillable: array:4 [▶]
+  #hidden: array:2 [▶]
+  #casts: array:1 [▶]
+  #connection: "mysql"
+  #table: "users"
+  #primaryKey: "id"
+  #keyType: "int"
+  +incrementing: true
+  #with: []
+  #withCount: []
+  #perPage: 15
+  +exists: true
+  +wasRecentlyCreated: false
+  #attributes: array:9 [▶]
+  #original: array:9 [▶]
+  #changes: []
+  #classCastCache: []
+  #dates: []
+  #dateFormat: null
+  #appends: []
+  #dispatchesEvents: []
+  #observables: []
+  #relations: []
+  #touches: []
+  +timestamps: true
+  #visible: []
+  #guarded: array:1 [▶]
+  #rememberTokenName: "remember_token"
+}
+```
+
+> We can see there is no relationship `#relations: []`.
+
+Now change with `dd(auth()->user()->todos);` and we can se below:
+
+```json
+Illuminate\Database\Eloquent\Collection {#1242 ▼
+  #items: array:1 [▼
+    0 => App\Todo {#1245 ▶}
+  ]
+}
+```
+
+Now change with `dd(auth()->user()->todos());` and we can se below:
+
+```json
+Illuminate\Database\Eloquent\Relations\HasMany {#1241 ▼
+  #foreignKey: "todos.user_id"
+  #localKey: "id"
+  #query: Illuminate\Database\Eloquent\Builder {#1214 ▶}
+  #parent: App\User {#1221 ▶}
+  #related: App\Todo {#1202 ▶}
+}
+```
+
+> And now we can see the relationsip. Which is `hasMany` relationship. `User` is **parent** and has **relation** with `Todo` So from that I can do the create part.
+
+So finally the `store` function of `TodoController` will look like below:
+
+```php
+public function store(TodoCreateRequest $request)
+{
+    // dd(auth()->user()->todos());
+    auth()->user()->todos()->create($request->all());
+    return redirect()->back()->with('message', 'Todo created successfully!');
+}
+```
+
+**Line Desc:** authenticated user has some todos and we are creating this
+
+> Here `auth()->user()` will definely the autheticted user. We have no chance to miss the user. Because we have **middleware** constructor in `TodoController`.
+
+> Now we don't have to define the `$userId`.
+
+---
+
+## <center>**Todo of Auth User**</center>
+
+---
+
+## Primary way
+
+> We will make a system so that an authenticated user can see only his `todos`.
+
+in `store` function in `TodoController.php` if we add below code.
+
+```php
+$todos = auth()->user()->todos;
+return $todos;
+```
+
+Output in SCREEN will look like below:
+
+```json
+[
+    {
+        "id": 1,
+        "title": "new todo",
+        "user_id": 1,
+        "completed": 0,
+        "created_at": "2020-06-20T18:43:13.000000Z",
+        "updated_at": "2020-06-20T18:43:13.000000Z"
+    },
+    {
+        "id": 4,
+        "title": "new use",
+        "user_id": 1,
+        "completed": 0,
+        "created_at": "2020-06-21T04:16:32.000000Z",
+        "updated_at": "2020-06-21T04:16:32.000000Z"
+    }
+]
+```
+
+Below two lines of code for getting the data `orderedBy`.
+
+```php
+$todos = auth()->user()->todos()->orderBy('completed')->get();
+return $todos;
+```
+
+FInally
+
+`TodoController.php`
+
+**Way 1:**
+
+```php
+public function index()
+{
+    $todos = auth()->user()->todos()->orderBy('completed')->get();  //SQL type of orderBy query
+    return view('todos.index', compact('todos'));
+}
+```
+
+**Way 2:**
+
+```php
+public function index()
+{
+    $todos = auth()->user()->todos->sortBy('completed');    //Collection type
+    return view('todos.index', compact('todos'));
+}
+```
+
+> Documentation: [Sort By](https://laravel.com/docs/7.x/collections#method-sortby)
+
+> `orderBy` is for SQL, and `sortBy` is for collection.
+
+> Now we can see `todos` created by specific authenticated user. So todos are protected from other user now.
+
+---
+
+## Alternative way:
+
+> We can also set `orderBy` in `User` model instead of coding here in `TodoController`, then the model and controller will look like below:
+
+`User.php`
+
+```php
+public function todos()
+{
+    return $this->hasMany(Todo::class)->orderBy('completed')->get();
+}
+```
+
+`TodoController.php`
+
+```php
+public function index()
+{
+    $todos = auth()->user()->todos();
+    return $todos;
+}
+```
+
+> Here we don't need to say `orderBy` in `Controller`. Because we already set this functionality in `User` Model.
+
+Gives Same result
+
+```json
+[
+    {
+        "id": 1,
+        "title": "new todo",
+        "user_id": 1,
+        "completed": 0,
+        "created_at": "2020-06-20T18:43:13.000000Z",
+        "updated_at": "2020-06-20T18:43:13.000000Z"
+    },
+    {
+        "id": 4,
+        "title": "new use",
+        "user_id": 1,
+        "completed": 0,
+        "created_at": "2020-06-21T04:16:32.000000Z",
+        "updated_at": "2020-06-21T04:16:32.000000Z"
+    }
+]
+```
+
+### **But Primary Way is better to use because we can change the order at any time. Because setting this in `Controller` is way easier than `Model`.**
+
+---
+
+---
+
+## <center>**Redirect to Todo After login**</center>
 
 ---
